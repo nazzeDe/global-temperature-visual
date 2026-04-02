@@ -1,0 +1,20 @@
+body {
+    margin: 0;
+    font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f5f7fa;
+}
+.page {
+    max-width: 1200px;
+    margin: 24px auto;
+    padding: 0 16px;
+}
+.toolbar {
+    margin: 12px 0 16px;
+}
+.toolbar input {
+    width: 120px;
+}
+.msg {
+    margin-top: 8px;
+    font-size: 14px;
+}
