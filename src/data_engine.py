@@ -65,6 +65,29 @@ class DataEngine:
         grouped["temperature"] = grouped["temperature"].astype("float64")
         return grouped
 
+    def get_city_temp_by_year(self, year: int, limit: int = 20) -> pd.DataFrame:
+        """按年份计算各城市平均温度，返回列：City, temperature"""
+        df = self._load_csv("GlobalLandTemperaturesByCity.csv")
+
+        filtered = df.loc[
+            (df["year"] == year) & df["AverageTemperature"].notna(),
+            ["City", "AverageTemperature"],
+        ]
+        if filtered.empty:
+            return filtered.assign(temperature=pd.Series(dtype="float64"))
+
+        grouped = (
+            filtered.groupby("City", as_index=False)["AverageTemperature"]
+            .mean()
+            .rename(columns={"AverageTemperature": "temperature"})
+            .sort_values("temperature", ascending=False)
+            .head(limit)
+            .reset_index(drop=True)
+        )
+
+        grouped["temperature"] = grouped["temperature"].astype("float64")
+        return grouped
+
 
 if __name__ == "__main__":
     engine = DataEngine()
