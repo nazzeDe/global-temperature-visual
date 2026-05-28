@@ -189,17 +189,40 @@ class DataEngine:
 
     # ── 城市年均温排名 ────────────────────────────────────────────
 
-    def get_city_temp_by_year(self, year: int, limit: int = 20) -> pd.DataFrame:
+    def get_city_temp_by_year(self, year: int, limit: int = 20, country: str | None = None) -> pd.DataFrame:
         df = self._load_csv("GlobalLandTemperaturesByCity.csv")
         filtered = df.loc[
             (df["year"] == year) & df["AverageTemperature"].notna(),
-            ["City", "AverageTemperature"],
+            ["City", "Country", "AverageTemperature"],
         ]
+        if country:
+            filtered = filtered[filtered["Country"] == country]
         if filtered.empty:
             return pd.DataFrame({"City": pd.Series(dtype="str"), "temperature": pd.Series(dtype="float64")})
-
         grouped = (
             filtered.groupby("City", as_index=False)["AverageTemperature"]
+            .mean()
+            .rename(columns={"AverageTemperature": "temperature"})
+            .sort_values("temperature", ascending=False)
+            .head(limit)
+            .reset_index(drop=True)
+        )
+        grouped["temperature"] = grouped["temperature"].astype("float64")
+        return grouped
+
+    # ── 省年均温排名（按国家筛选）───────────────────────────────────
+    def get_state_temp_by_year(self, year: int, country: str | None = None, limit: int = 20) -> pd.DataFrame:
+        df = self._load_csv("GlobalLandTemperaturesByState.csv")
+        filtered = df.loc[
+            (df["year"] == year) & df["AverageTemperature"].notna(),
+            ["State", "Country", "AverageTemperature"],
+        ]
+        if country:
+            filtered = filtered[filtered["Country"] == country]
+        if filtered.empty:
+            return pd.DataFrame({"State": pd.Series(dtype="str"), "temperature": pd.Series(dtype="float64")})
+        grouped = (
+            filtered.groupby("State", as_index=False)["AverageTemperature"]
             .mean()
             .rename(columns={"AverageTemperature": "temperature"})
             .sort_values("temperature", ascending=False)

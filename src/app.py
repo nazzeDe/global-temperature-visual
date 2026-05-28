@@ -109,9 +109,9 @@ async def api_country_annual(year: int = Query(..., ge=0)):
 # ── 城市数据 ──────────────────────────────────────────────────────
 
 @app.get("/api/city-temp")
-async def api_city_temp(year: int = Query(..., ge=0), limit: int = Query(20, ge=1, le=100)):
+async def api_city_temp(year: int = Query(..., ge=0), limit: int = Query(20, ge=1, le=100), country: str | None = Query(None)):
     try:
-        df = engine.get_city_temp_by_year(year=year, limit=limit)
+        df = engine.get_city_temp_by_year(year=year, limit=limit, country=country)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
@@ -155,41 +155,21 @@ async def api_city_latband(min_year: int = Query(1850, ge=0)):
 
 
 @app.get("/api/state-temp")
-def api_state_temp():
-    year_raw = request.args.get("year")
-    if year_raw is None:
-        return jsonify({"error": "year 是必填参数"}), 400
-
-    country = request.args.get("country", default="United States").strip()
-    if not country:
-        return jsonify({"error": "country 是必填参数"}), 400
-
-    try:
-        year = int(year_raw)
-    except ValueError:
-        return jsonify({"error": "year 必须是整数"}), 400
-
-    limit_raw = request.args.get("limit", default="15")
-    try:
-        limit = int(limit_raw)
-    except ValueError:
-        return jsonify({"error": "limit 必须是整数"}), 400
-
+async def api_state_temp(year: int = Query(..., ge=0), country: str = Query(...), limit: int = Query(15, ge=1, le=100)):
     try:
         df = engine.get_state_temp_by_year(year=year, country=country, limit=limit)
     except FileNotFoundError as e:
-        return jsonify({"error": str(e)}), 404
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        return jsonify({"error": f"service error:{e}"}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-    payload = {
+    return {
         "year": year,
         "country": country,
         "states": df["State"].astype(str).tolist(),
         "temps": df["temperature"].astype(float).round(1).tolist(),
         "count": len(df),
     }
-    return jsonify(payload)
 
 
 if __name__ == "__main__":
