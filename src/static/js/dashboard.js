@@ -34,9 +34,6 @@
   const elFilterMsg = $("filterMsg");
   const elMapSlider = $("mapYearInput");
   const elMapLabel = $("mapYearLabel");
-  const elCityYear = $("cityYearInput");
-  const elCityLimit = $("cityLimitInput");
-  const elReloadCity = $("reloadCityBtn");
 
   // ── 图表实例（initAllCharts 赋值）──────────────────
   let chartGlobal, chartAnomaly, chartMonthly, chartMap, chartLatband, chartCity;
@@ -119,7 +116,6 @@
       ["chartMonthly", "chartMonthly"],
       ["chartWorldMap", "chartWorldMap"],
       ["chartLatband", "chartLatband"],
-      ["chartCityRanking", "chartCityRanking"],
     ];
     const results = [];
     containers.forEach(([id, name]) => {
@@ -131,8 +127,8 @@
         dbg("✗ " + name + ": " + e.message, "#d9534f");
       }
     });
-    [chartGlobal, chartAnomaly, chartMonthly, chartMap, chartLatband, chartCity] = results;
-    dbg(results.filter(Boolean).length + "/6 图表实例已创建", "#81c784");
+    [chartGlobal, chartAnomaly, chartMonthly, chartMap, chartLatband] = results;
+    dbg(results.filter(Boolean).length + "/5 图表实例已创建", "#81c784");
   };
 
   // ── 1. 全球温度多线对比 ───────────────────────────
@@ -368,48 +364,7 @@
       });
   };
 
-  // ── 6. 城市排名 ────────────────────────────────────
-  const loadCityRanking = () => {
-    if (!chartCity) return;
-    const year = parseInt(elCityYear.value, 10) || 2024;
-    const limit = parseInt(elCityLimit.value, 10) || 15;
-    setStatus("statusCity", "正在加载...", "loading");
-    chartCity.showLoading(loadingOpts);
-
-    fetch("/api/city-temp?year=" + year + "&limit=" + limit)
-      .then(r => r.json())
-      .then(d => {
-        dbg("城市排名: " + d.count + " 城 (year=" + year + ")");
-        const cities = d.cities.slice().reverse();
-        const temps = d.temps.slice().reverse();
-
-        chartCity.setOption({
-          backgroundColor: DARK_BG,
-          title: { text: year + " 年城市平均温度排名", left: "center", textStyle: { color: "#c8d6e5", fontSize: 15 } },
-          tooltip: { trigger: "axis", axisPointer: { type: "shadow" }, formatter: p => p[0].name + "<br/>温度: " + p[0].value.toFixed(1) + " °C" },
-          grid: { left: 100, right: 50, top: 50, bottom: 30 },
-          xAxis: [{
-            type: "value", name: "温度 (°C)", scale: true,
-            nameTextStyle: { color: "#8a9bb5" },
-            axisLabel: { color: "#8a9bb5", formatter: "{value} °C" },
-            splitLine: { lineStyle: { color: "#1a2d42" } },
-          }],
-          yAxis: [{ type: "category", data: cities, axisLabel: { color: "#8a9bb5", fontSize: 11 }, axisLine: { lineStyle: { color: "#1e3a5f" } } }],
-          series: [{
-            type: "bar", barMaxWidth: 26,
-            data: temps.map(v => ({
-              value: v, itemStyle: { color: v > 20 ? "#d9534f" : v > 10 ? "#ffab40" : "#4fc3f7" },
-            })),
-          }],
-        }, true);
-        chartCity.hideLoading();
-        setStatus("statusCity", "加载完成（" + year + " 年, " + d.count + " 城）", "ok");
-      })
-      .catch(err => {
-        chartCity.hideLoading();
-        setStatus("statusCity", "加载失败: " + err.message, "error");
-      });
-  };
+  // 城市图表逻辑已迁移到独立脚本 `city-temp-chart.js`
 
   // ── 全局筛选 ──────────────────────────────────────
   const applyGlobalFilter = () => {
@@ -444,13 +399,11 @@
     }
 
     elApply.addEventListener("click", applyGlobalFilter);
-    elReloadCity.addEventListener("click", loadCityRanking);
 
     loadGlobalAnnual();
     loadAnomaly();
     loadMonthly();
     loadLatband();
-    loadCityRanking();
 
     loadWorldGeoJson()
       .then(() => initMap())

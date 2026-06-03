@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 import os
 from pathlib import Path
+from typing import Union
 
 import pandas as pd
 
 
 class DataEngine:
-    def __init__(self, data_path: str | Path | None = None) -> None:
+    def __init__(self, data_path: Union[str, Path, None] = None) -> None:
         if data_path is None:
             data_path = Path(__file__).resolve().parent / "dataset"
         self.path = Path(data_path)
@@ -191,15 +194,16 @@ class DataEngine:
 
     # ── 城市年均温排名 ────────────────────────────────────────────
 
-    def get_city_temp_by_year(self, year: int, limit: int = 20) -> pd.DataFrame:
+    def get_city_temp_by_year(self, year: int, limit: int = 20, country: Union[str, None] = None) -> pd.DataFrame:
         df = self._load_csv("GlobalLandTemperaturesByCity.csv")
         filtered = df.loc[
             (df["year"] == year) & df["AverageTemperature"].notna(),
-            ["City", "AverageTemperature"],
+            ["City", "Country", "AverageTemperature"],
         ]
+        if country:
+            filtered = filtered[filtered["Country"] == country]
         if filtered.empty:
             return pd.DataFrame({"City": pd.Series(dtype="str"), "temperature": pd.Series(dtype="float64")})
-
         grouped = (
             filtered.groupby("City", as_index=False)["AverageTemperature"]
             .mean()
@@ -210,3 +214,37 @@ class DataEngine:
         )
         grouped["temperature"] = grouped["temperature"].astype("float64")
         return grouped
+
+    # ── 省年均温排名（按国家筛选）───────────────────────────────────
+    def get_state_temp_by_year(self, year: int, country: Union[str, None] = None, limit: int = 20) -> pd.DataFrame:
+        df = self._load_csv("GlobalLandTemperaturesByState.csv")
+        filtered = df.loc[
+            (df["year"] == year) & df["AverageTemperature"].notna(),
+            ["State", "Country", "AverageTemperature"],
+        ]
+        if country:
+            filtered = filtered[filtered["Country"] == country]
+        if filtered.empty:
+            return pd.DataFrame({"State": pd.Series(dtype="str"), "temperature": pd.Series(dtype="float64")})
+        grouped = (
+            filtered.groupby("State", as_index=False)["AverageTemperature"]
+            .mean()
+            .rename(columns={"AverageTemperature": "temperature"})
+            .sort_values("temperature", ascending=False)
+            .head(limit)
+            .reset_index(drop=True)
+        )
+        grouped["temperature"] = grouped["temperature"].astype("float64")
+        return grouped
+
+
+if __name__ == "__main__":
+    engine = DataEngine()
+    try:
+        global_temp = engine.get_global_temp()
+
+        print("全球温度年数据预览:")
+        print(global_temp.head())
+
+    except Exception as e:
+        print(f"运行失败: {e}")
