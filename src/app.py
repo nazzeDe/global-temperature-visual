@@ -1,5 +1,6 @@
 import math
 from pathlib import Path
+from typing import Union
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Query
@@ -109,7 +110,7 @@ async def api_country_annual(year: int = Query(..., ge=0)):
 # ── 城市数据 ──────────────────────────────────────────────────────
 
 @app.get("/api/city-temp")
-async def api_city_temp(year: int = Query(..., ge=0), limit: int = Query(20, ge=1, le=100), country: str | None = Query(None)):
+async def api_city_temp(year: int = Query(..., ge=0), limit: int = Query(20, ge=1, le=100), country: Union[str, None] = Query(None)):
     try:
         df = engine.get_city_temp_by_year(year=year, limit=limit, country=country)
     except FileNotFoundError as e:
@@ -155,7 +156,7 @@ async def api_city_latband(min_year: int = Query(1850, ge=0)):
 
 
 @app.get("/api/state-temp")
-async def api_state_temp(year: int = Query(..., ge=0), country: str = Query(...), limit: int = Query(15, ge=1, le=100)):
+async def api_state_temp(year: int = Query(..., ge=0), country: str = Query("United States"), limit: int = Query(15, ge=1, le=100)):
     try:
         df = engine.get_state_temp_by_year(year=year, country=country, limit=limit)
     except FileNotFoundError as e:

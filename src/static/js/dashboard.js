@@ -36,7 +36,7 @@
   const elMapLabel = $("mapYearLabel");
 
   // ── 图表实例（initAllCharts 赋值）──────────────────
-  let chartGlobal, chartAnomaly, chartMonthly, chartMap, chartLatband;
+  let chartGlobal, chartAnomaly, chartMonthly, chartMap, chartLatband, chartCity;
 
   // ── 共用的深色主题配置 ────────────────────────────
   const DARK_BG = "#152238";

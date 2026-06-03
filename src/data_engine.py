@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 import os
 from pathlib import Path
+from typing import Union
 
 import pandas as pd
 
 
 class DataEngine:
-    def __init__(self, data_path: str | Path | None = None) -> None:
+    def __init__(self, data_path: Union[str, Path, None] = None) -> None:
         if data_path is None:
             data_path = Path(__file__).resolve().parent / "dataset"
         self.path = Path(data_path)
@@ -189,7 +192,7 @@ class DataEngine:
 
     # ── 城市年均温排名 ────────────────────────────────────────────
 
-    def get_city_temp_by_year(self, year: int, limit: int = 20, country: str | None = None) -> pd.DataFrame:
+    def get_city_temp_by_year(self, year: int, limit: int = 20, country: Union[str, None] = None) -> pd.DataFrame:
         df = self._load_csv("GlobalLandTemperaturesByCity.csv")
         filtered = df.loc[
             (df["year"] == year) & df["AverageTemperature"].notna(),
@@ -211,7 +214,7 @@ class DataEngine:
         return grouped
 
     # ── 省年均温排名（按国家筛选）───────────────────────────────────
-    def get_state_temp_by_year(self, year: int, country: str | None = None, limit: int = 20) -> pd.DataFrame:
+    def get_state_temp_by_year(self, year: int, country: Union[str, None] = None, limit: int = 20) -> pd.DataFrame:
         df = self._load_csv("GlobalLandTemperaturesByState.csv")
         filtered = df.loc[
             (df["year"] == year) & df["AverageTemperature"].notna(),

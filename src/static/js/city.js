@@ -26,12 +26,12 @@
       }
 
       const option = {
-        title: { text: `${year} 年 ${country} 州/省平均温度（按温度排序）`, left: "center" },
+        title: { text: `${year} 年 ${country} 省平均温度排名`, left: "center" },
         tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
         grid: { left: 60, right: 20, top: 60, bottom: 80 },
         xAxis: {
           type: "category",
-          name: "州/省",
+          name: "省",
           data: data.states,
           axisLabel: { interval: 0, rotate: 30 },
         },
@@ -52,7 +52,7 @@
       };
 
       stateChart.setOption(option, true);
-      setMessage(stateMsgDom, "加载完成，共 " + data.count + " 个州/省。", false);
+      setMessage(stateMsgDom, "加载完成，共 " + data.count + " 个省。", false);
     } catch (err) {
       setMessage(stateMsgDom, "加载失败：" + err.message, true);
     }
